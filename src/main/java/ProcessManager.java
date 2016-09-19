@@ -10,6 +10,7 @@ public class ProcessManager {
      */
     String      program;
     String[]    arguments;
+    Process myprocess;
 
     // FIXME if you need to add more variables
 
@@ -29,6 +30,7 @@ public class ProcessManager {
      */
      public void spawn() {
          // FIXME and write the code to create a process
+         process = new ProcessBuilder(program, arguements).start();
      }
 
     /**
@@ -55,5 +57,6 @@ public class ProcessManager {
       */
       public void destroy() {
           //    FIXME and write the code to kill the process
+          process.destroy();
       }
 }
