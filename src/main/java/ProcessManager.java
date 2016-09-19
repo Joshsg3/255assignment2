@@ -19,6 +19,7 @@ public class ProcessManager {
      *
      *  @param  executable    The program to run
      *  @param  args          The arguments of the program
+     *  @param  Process       The actual process
      */
     public ProcessManager(String executable, String[] args) {
         program = executable;
@@ -26,7 +27,9 @@ public class ProcessManager {
     }
 
     /**
-     * Spawn a process
+     * Spawn a process through the processbuilder
+     * 
+     *  @see   processbuilder
      */
      public void spawn() {
          // FIXME and write the code to create a process
