@@ -1,4 +1,5 @@
-
+import java.io.BufferedReader;
+import java.io.PipedInputStream;
 
 /**
  * Create a running process and manage interaction with it
@@ -32,16 +33,31 @@ public class ProcessManager {
      *  @see   processbuilder
      */
      public void spawn() {
-         // FIXME and write the code to create a process
          process = new ProcessBuilder(program, arguements).start();
      }
 
     /**
      * Spawn a process and collect the results
+     * uses the getInputStream() from the process created in the spawn (called at the start)
+     * puts the getinputstream through  an input stream reader and then into the pipe
+     * on the other end of the pipe the output is read into a buffered reader 
+     * and from that a line is read from the buffered reader to the output of the program
+     *  @param  output         pipeline input from the program
+     *  @param  input          pipeline output to the output of the function
      */
      public String spawnAndCollect() {
-         //    FIXME and write the code
-         return "";
+		 this.spawn();
+		 
+		 final PipedOutputStream output = new PipedOutputStream();
+         final PipedInputStream  input  = new PipedInputStream(output);
+
+         InputStreamReader in = new InputStreamReader(process.getInputStream());
+		 while (in.ready()){
+	         output.write(in.read());
+		 }
+		 BufferedReader out = new BufferedReader(input);
+		 
+         return out.readLine();
      }
 
      /**
