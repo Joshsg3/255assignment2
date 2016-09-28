@@ -1,5 +1,11 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.PipedInputStream;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.InputStreamReader;
+import java.util.Scanner;
 
 /**
  * Create a running process and manage interaction with it
@@ -11,7 +17,7 @@ public class ProcessManager {
      */
     String      program;
     String[]    arguments;
-    Process myprocess;
+    Process process;
 
     // FIXME if you need to add more variables
 
@@ -29,35 +35,58 @@ public class ProcessManager {
 
     /**
      * Spawn a process through the processbuilder
+     * had to join the program name and arguements into the same string array for the process builder 
+     * and use a try and catch for the possible exception
      * 
      *  @see   processbuilder
      */
      public void spawn() {
-         process = new ProcessBuilder(program, arguements).start();
+		 String[] tmp = new String[arguments.length + 1];
+		 tmp[0] = program;
+		 for(int i = 0; i < arguments.length; i++){
+			 tmp[i+1] = arguments[i];
+		 }
+		 
+		 try {
+			 process = new ProcessBuilder(tmp).start();
+			} catch (Exception NullPointerException) {
+				System.out.println("tmp was null");
+			}
+		 
      }
 
     /**
      * Spawn a process and collect the results
-     * uses the getInputStream() from the process created in the spawn (called at the start)
-     * puts the getinputstream through  an input stream reader and then into the pipe
-     * on the other end of the pipe the output is read into a buffered reader 
-     * and from that a line is read from the buffered reader to the output of the program
-     *  @param  output         pipeline input from the program
-     *  @param  input          pipeline output to the output of the function
+     * 
+     * spawns the process, connects the output stream and input stream  to stdin and stdout
+     * puts them into the buffer reader and writer
+     * 
+     *  @see OutputStream
+     *  @see InputStream
+     *  @see Process
+     *  @see BufferedReader
+     *  @see BufferedWriter
+     *  @see Scanner
      */
      public String spawnAndCollect() {
 		 this.spawn();
 		 
-		 final PipedOutputStream output = new PipedOutputStream();
-         final PipedInputStream  input  = new PipedInputStream(output);
+		 OutputStream stdin = process.getOutputStream();
+		 InputStream stdout = process.getInputStream();
 
-         InputStreamReader in = new InputStreamReader(process.getInputStream());
-		 while (in.ready()){
-	         output.write(in.read());
-		 }
-		 BufferedReader out = new BufferedReader(input);
+		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
+		 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
 		 
-         return out.readLine();
+		 Scanner scanner = new Scanner(stdout);
+
+	     String result = new String();
+	     while (scanner.hasNextLine()) {
+	    	 String tmp = scanner.nextLine();
+	         System.out.println(tmp);
+		     result.join("", result, tmp);
+	     }
+	     
+         return result;
      }
 
      /**
