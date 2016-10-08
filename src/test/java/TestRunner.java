@@ -1,5 +1,6 @@
-
+package test.java;
 import org.junit.runner.JUnitCore;
+import main.java.*;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 

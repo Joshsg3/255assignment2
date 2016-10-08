@@ -1,33 +1,39 @@
-/*
- * test.java
- * 
- * Copyright 2016 Joshua <Joshua@LAPTOP-UDSA6LSQ>
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- * 
- * 
- */
-import ProcessManager.*;
+
+package test.java;
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+import main.java.*;
 
 public class test {
 	
-	public static void main (String[] args) {
-		ProcessManager main = new ProcessManager("echo", "example");
-		System.out.println(main.spawnAndCollect());
+	@Test
+	public void tester() {
+		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255_assignment1/src/test/java/test.bat", null);
+		String tmp = main.spawnAndCollect();
+		assertEquals("hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello", tmp);
+	}
+	
+	@Test
+	public void tester2(){
+		String[] temp = new String[1];
+		temp[0] = "exit";
+		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255_assignment1/src/test/java/test.bat", null);
+		String tmp = main.spawnAndCollectWithTimeout(5);
+		assertEquals("timedout", tmp);
+	}
+	
+	@Test
+	public void destroytest(){
+		ProcessManager main = new ProcessManager("cmd.exe", null);
+		main.spawn();
+		main.destroy();
+		assertFalse(main.isAlive());
+	}
+	@Test
+	public void notdestroytest(){
+		ProcessManager main = new ProcessManager("cmd.exe", null);
+		main.spawn();
+		assertTrue(main.isAlive());
 	}
 }
-
-//"C:\Users\Joshua\workspace\comp255_assignment\src\test\java\test.bat", ""

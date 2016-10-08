@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class ProcessManager {
 
     /**
-     * The strings for which the analyser is built
+     * The strings for which the analyzer is built
      */
     String      program;
     String[]    arguments;
@@ -25,7 +25,7 @@ public class ProcessManager {
     // FIXME if you need to add more variables
 
     /**
-     * Make aa running process with
+     * Make a running process with processbuilder
      *
      *  @param  executable    The program to run
      *  @param  args          The arguments of the program
@@ -44,20 +44,24 @@ public class ProcessManager {
      * 
      *  @see   processbuilder
      */
-     public void spawn() throws IOException {
+     public void spawn(){
 		 String[] tmp;
-    	 if (arguments == null){
+    	 if (arguments == null){ //if no arguements are given
     		 tmp = new String[1];
     		 tmp[0] = program;
-    	 }else {
+    	 }else { // if arguements are given
     		 tmp = new String[arguments.length + 1];
     		 tmp[0] = program;
-    		 for(int i = 0; i < arguments.length; i++){
+    		 for(int i = 0; i < arguments.length; i++){ // add the arguements onto the program name
     			 tmp[i+1] = arguments[i];
     		 } 		 
-    	 }
+    	 } // make the process builder
 		ProcessBuilder pb = new ProcessBuilder(tmp); 
-		process = pb.start();
+		try { // try to start the program
+			process = pb.start();
+		} catch (IOException e) {
+			System.out.println("failed to start");
+		}
      }
 
     /**
@@ -65,7 +69,6 @@ public class ProcessManager {
      * 
      * spawns the process, connects the output stream and input stream  to stdin and stdout
      * puts them into the buffer reader and writer
-     * @throws IOException 
      * 
      *  @see OutputStream
      *  @see InputStream
@@ -73,75 +76,86 @@ public class ProcessManager {
      *  @see BufferedReader
      *  @see BufferedWriter
      *  @see Scanner
+     *  @see process.waitfor()
      */
      @SuppressWarnings({ "unused", "resource" })
-	public String spawnAndCollect() throws IOException {
-		 this.spawn();
+	public String spawnAndCollect(){
+		 this.spawn(); //spawn the process
 		 
-		 InputStream stdout = process.getInputStream();
+		 InputStream stdout = process.getInputStream(); // create a pipe to get the output stream of the program
 
-		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
+		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // turn that output stream into a buffered one
 		 
-		 Scanner scanner = new Scanner(reader);
+		 Scanner scanner = new Scanner(reader); //create a scanner for that buffer
 
-	     String result = new String();
+	     String result = new String(); // for output
 	     try {
-			int errCode = process.waitFor();
+			int errCode = process.waitFor(); // run process till it finishes
 		} catch (InterruptedException e) {
 		}
 	     boolean temp = false;
-	     while (scanner.hasNextLine()) {
-	    	 if(temp){
-	    		 String tmp = scanner.nextLine();
-	    		 result = String.join("", result, tmp);
+	     while (scanner.hasNextLine()) { // whilst the program has a next time in the output
+	    	 if(temp){ // ignore the output of the program name
+	    		 String tmp = scanner.nextLine(); //get that line
+	    		 result = String.join("", result, tmp); //add that line to the result string
 	    	 }
 	    	 temp = true;
 	     }
-	     
-         return result;
+
+	     this.destroy(); //end the process
+         return result; 
      }
 
      /**
       * Spawn a process and collect the results or throw an
-      * exception if no answer before the timout
+      * exception if no answer before the timeout
       *
       * @param  timeout     The timeout in milliseconds
-     * @throws IOException 
+      * @see spawnAndCollect()
+      * @see process.waitfor(timeout, timeunit)
+      * @see destroy()
       */
-      public String spawnAndCollectWithTimeout(int timeout) throws IOException {
-    	  this.spawn();
+      public String spawnAndCollectWithTimeout(int timeout){
+    	  this.spawn(); //spawn the process
  		 
- 		 InputStream stdout = process.getInputStream();
+ 		 InputStream stdout = process.getInputStream(); //make pipe for output stream
 
- 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
+ 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // like pipe to buffered reader
  		 
- 		 Scanner scanner = new Scanner(reader);
+ 		 Scanner scanner = new Scanner(reader); //make scanner
 
  	     String result = new String();
  	    boolean temp = true;
  	     try {
- 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS);
+ 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
  		} catch (InterruptedException e) {
  		}
- 	     if (!(temp)){
- 	    	 return "timedout";
+ 	     if (!(temp)){ // if timeout occurs
+ 	    	 this.destroy(); //kill process
+ 	    	 return "timedout"; //return result
  	     }
- 	     while (scanner.hasNextLine()) {
- 	    	 if(!(temp)){
- 	    		 String tmp = scanner.nextLine();
- 	    		 result = String.join("", result, tmp);
+ 	     while (scanner.hasNextLine()) { //whilst there is a next line to output
+ 	    	 if(!(temp)){ //ignore output of program name
+ 	    		 String tmp = scanner.nextLine(); // get that line
+ 	    		 result = String.join("", result, tmp); //add it to the result
  	    	 }
  	    	 temp = false;
  	     }
- 	     
-          return result;
+
+ 	     this.destroy(); //kill process
+         return result; 
+          
       }
 
      /**
       * Kill the process
       */
       public void destroy() {
-          //    FIXME and write the code to kill the process
           process.destroy();
+      }
+      
+      public Boolean isAlive(){ //returns if the process is alive
+		return(process.isAlive());
+    	  
       }
 }

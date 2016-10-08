@@ -1,6 +1,10 @@
-
+package test.java;
 import org.junit.Test;
+
+import main.java.*;
+
 import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,12 +15,13 @@ public class ProcessManagerTests {
 
     /**
      * Test for spawning a process
+     * @throws IOException 
      */
     @Test
-    public void templateTest() {
+    public void templateTest(){
 
         //  FIXME
-        //  program to spawan and arguments
+        //  program to spawn and arguments
         String prog = "ps";
         String[] args = { "aux" };
 
