@@ -1,11 +1,14 @@
+package main.java;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.InputStreamReader;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Create a running process and manage interaction with it
@@ -37,22 +40,24 @@ public class ProcessManager {
      * Spawn a process through the processbuilder
      * had to join the program name and arguements into the same string array for the process builder 
      * and use a try and catch for the possible exception
+     * @throws IOException 
      * 
      *  @see   processbuilder
      */
-     public void spawn() {
-		 String[] tmp = new String[arguments.length + 1];
-		 tmp[0] = program;
-		 for(int i = 0; i < arguments.length; i++){
-			 tmp[i+1] = arguments[i];
-		 }
-		 
-		 try {
-			 process = new ProcessBuilder(tmp).start();
-			} catch (Exception NullPointerException) {
-				System.out.println("tmp was null");
-			}
-		 
+     public void spawn() throws IOException {
+		 String[] tmp;
+    	 if (arguments == null){
+    		 tmp = new String[1];
+    		 tmp[0] = program;
+    	 }else {
+    		 tmp = new String[arguments.length + 1];
+    		 tmp[0] = program;
+    		 for(int i = 0; i < arguments.length; i++){
+    			 tmp[i+1] = arguments[i];
+    		 } 		 
+    	 }
+		ProcessBuilder pb = new ProcessBuilder(tmp); 
+		process = pb.start();
      }
 
     /**
@@ -60,6 +65,7 @@ public class ProcessManager {
      * 
      * spawns the process, connects the output stream and input stream  to stdin and stdout
      * puts them into the buffer reader and writer
+     * @throws IOException 
      * 
      *  @see OutputStream
      *  @see InputStream
@@ -68,22 +74,28 @@ public class ProcessManager {
      *  @see BufferedWriter
      *  @see Scanner
      */
-     public String spawnAndCollect() {
+     @SuppressWarnings({ "unused", "resource" })
+	public String spawnAndCollect() throws IOException {
 		 this.spawn();
 		 
-		 OutputStream stdin = process.getOutputStream();
 		 InputStream stdout = process.getInputStream();
 
 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
-		 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
 		 
-		 Scanner scanner = new Scanner(stdout);
+		 Scanner scanner = new Scanner(reader);
 
 	     String result = new String();
+	     try {
+			int errCode = process.waitFor();
+		} catch (InterruptedException e) {
+		}
+	     boolean temp = false;
 	     while (scanner.hasNextLine()) {
-	    	 String tmp = scanner.nextLine();
-	         System.out.println(tmp);
-		     result.join("", result, tmp);
+	    	 if(temp){
+	    		 String tmp = scanner.nextLine();
+	    		 result = String.join("", result, tmp);
+	    	 }
+	    	 temp = true;
 	     }
 	     
          return result;
@@ -94,10 +106,35 @@ public class ProcessManager {
       * exception if no answer before the timout
       *
       * @param  timeout     The timeout in milliseconds
+     * @throws IOException 
       */
-      public String spawnAndCollectWithTimeout(int timeout) {
-          //    FIXME and write the code
-          return "";
+      public String spawnAndCollectWithTimeout(int timeout) throws IOException {
+    	  this.spawn();
+ 		 
+ 		 InputStream stdout = process.getInputStream();
+
+ 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
+ 		 
+ 		 Scanner scanner = new Scanner(reader);
+
+ 	     String result = new String();
+ 	    boolean temp = true;
+ 	     try {
+ 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS);
+ 		} catch (InterruptedException e) {
+ 		}
+ 	     if (!(temp)){
+ 	    	 return "timedout";
+ 	     }
+ 	     while (scanner.hasNextLine()) {
+ 	    	 if(!(temp)){
+ 	    		 String tmp = scanner.nextLine();
+ 	    		 result = String.join("", result, tmp);
+ 	    	 }
+ 	    	 temp = false;
+ 	     }
+ 	     
+          return result;
       }
 
      /**
