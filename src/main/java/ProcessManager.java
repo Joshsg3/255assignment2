@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Create a running process and manage interaction with it
@@ -153,6 +154,62 @@ public class ProcessManager {
       public void destroy() {
           process.destroy();
       }
+      
+      /**
+      * Send a string to the process
+      */
+      public boolean send(String s) {
+    	 OutputStream stdout = process.getOutputStream(); //make pipe for input stream
+  		 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdout)); // like pipe to buffered reader
+  		 
+  		 try {
+			writer.write(s, 0, s.length());
+ 		 } catch (IOException e) {
+			System.out.println("Process Error");
+			return false;
+ 		 }
+ 		
+    	return true;
+      }
+      /**
+      * Send a string to the process and collect the result
+      * upto a ‘prompt‘ or throw an
+      * exception if the prompt is not seen before the timeout
+      *
+      * @param timeout The timeout in milliseconds
+      * @param prompt The expected prompt
+      */
+    	public String expect(Pattern prompt, int timeout) throws Exception{
+		 this.spawn(); //spawn the process
+ 		 InputStream stdout = process.getInputStream(); //make pipe for output stream
+ 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // like pipe to buffered reader
+ 		 Scanner scanner = new Scanner(reader); //make scanner
+		 String test = prompt.toString();
+ 	     String result = new String();
+ 	     boolean temp = true;
+ 	     boolean found = false;
+ 	     try {
+ 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
+ 		} catch (InterruptedException e) {
+ 		}
+ 	     while ((scanner.hasNextLine())&&(found == false)) { //whilst there is a next line to output
+ 	    	 if(!(temp)){ //ignore output of program name
+ 	    		 String tmp = scanner.nextLine(); // get that line
+ 	    		 result = String.join("", result, tmp); //add it to the result
+ 	    	 }
+ 	    	 if(result.contains(test)){
+				 found = true;
+			 }
+ 	    	 temp = false;
+ 	     }
+
+ 	     this.destroy(); //kill process
+ 	     if (found == false){
+			 throw new Exception("string not found", null); 
+		 }
+         return result; 
+      }
+      
       
       public Boolean isAlive(){ //returns if the process is alive
 		return(process.isAlive());
