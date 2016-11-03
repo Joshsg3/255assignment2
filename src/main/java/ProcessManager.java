@@ -161,14 +161,12 @@ public class ProcessManager {
       public boolean send(String s) {
     	 OutputStream stdout = process.getOutputStream(); //make pipe for input stream
   		 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdout)); // like pipe to buffered reader
-  		 
   		 try {
 			writer.write(s, 0, s.length());
  		 } catch (IOException e) {
 			System.out.println("Process Error");
 			return false;
  		 }
- 		
     	return true;
       }
       /**
