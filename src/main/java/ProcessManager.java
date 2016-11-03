@@ -180,7 +180,6 @@ public class ProcessManager {
       * @param prompt The expected prompt
       */
     	public String expect(Pattern prompt, int timeout) throws Exception{
-		 this.spawn(); //spawn the process
  		 InputStream stdout = process.getInputStream(); //make pipe for output stream
  		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // like pipe to buffered reader
  		 Scanner scanner = new Scanner(reader); //make scanner
@@ -195,7 +194,9 @@ public class ProcessManager {
  	     while ((scanner.hasNextLine())&&(found == false)) { //whilst there is a next line to output
  	    	 if(!(temp)){ //ignore output of program name
  	    		 String tmp = scanner.nextLine(); // get that line
+ 	    		 System.out.println(tmp);
  	    		 result = String.join("", result, tmp); //add it to the result
+ 	    		 System.out.println(result);
  	    	 }
  	    	 if(result.contains(test)){
 				 found = true;
