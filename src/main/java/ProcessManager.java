@@ -22,6 +22,13 @@ public class ProcessManager {
     String      program;
     String[]    arguments;
     Process process;
+    InputStream stdout;
+    BufferedReader reader;
+    Scanner scanner;
+    Boolean init = false;
+    Boolean init2 = false;
+    BufferedWriter writer;
+    OutputStream stdin;
 
     // FIXME if you need to add more variables
 
@@ -81,13 +88,7 @@ public class ProcessManager {
      */
      @SuppressWarnings({ "unused", "resource" })
 	public String spawnAndCollect(){
-		 this.spawn(); //spawn the process
-		 
-		 InputStream stdout = process.getInputStream(); // create a pipe to get the output stream of the program
-
-		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // turn that output stream into a buffered one
-		 
-		 Scanner scanner = new Scanner(reader); //create a scanner for that buffer
+		 scanner();
 
 	     String result = new String(); // for output
 	     try {
@@ -117,13 +118,7 @@ public class ProcessManager {
       * @see destroy()
       */
       public String spawnAndCollectWithTimeout(int timeout){
-    	  this.spawn(); //spawn the process
- 		 
- 		 InputStream stdout = process.getInputStream(); //make pipe for output stream
-
- 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // like pipe to buffered reader
- 		 
- 		 Scanner scanner = new Scanner(reader); //make scanner
+    	  scanner();
 
  	     String result = new String();
  	    boolean temp = true;
@@ -155,15 +150,30 @@ public class ProcessManager {
           process.destroy();
       }
       
+      public void writer(){
+    	  if((isAlive())&&(!init2)){
+    	    stdin = process.getOutputStream(); //make pipe for input stream
+    	  	writer = new BufferedWriter(new OutputStreamWriter(stdin)); // like pipe to buffered reader
+    		init2 = true;
+    	  }else if((isAlive())&&(init2)){
+    		  
+    	  }else if((!isAlive())){
+    		  spawn();
+    		  writer();
+    	  }
+      }
+      
       /**
       * Send a string to the process
       */
       public boolean send(String s) {
-    	 OutputStream stdout = process.getOutputStream(); //make pipe for input stream
-  		 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdout)); // like pipe to buffered reader
+    	  writer();
   		 try {
 			writer.write(s, 0, s.length());
+			writer.flush();
+			System.out.println("sent");
  		 } catch (IOException e) {
+ 			 System.out.println(e.getMessage());
 			System.out.println("Process Error");
 			return false;
  		 }
@@ -178,40 +188,73 @@ public class ProcessManager {
       * @param prompt The expected prompt
       */
     	public String expect(Pattern prompt, int timeout) throws Exception{
- 		 InputStream stdout = process.getInputStream(); //make pipe for output stream
- 		 BufferedReader reader = new BufferedReader(new InputStreamReader(stdout)); // like pipe to buffered reader
- 		 Scanner scanner = new Scanner(reader); //make scanner
+ 		 scanner();
 		 String test = prompt.toString();
  	     String result = new String();
  	     boolean temp = true;
  	     boolean found = false;
- 	     try {
- 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
- 		} catch (InterruptedException e) {
- 		}
- 	     while ((scanner.hasNextLine())&&(found == false)) { //whilst there is a next line to output
+ 	     int count = 0;
+ 	     while ((scanner.hasNextLine())&&(found == false)&&(count < 50)) { //whilst there is a next line to output
  	    	 if(!(temp)){ //ignore output of program name
  	    		 String tmp = scanner.nextLine(); // get that line
  	    		 System.out.println(tmp);
+ 	    		 System.out.println("000000");
  	    		 result = String.join("", result, tmp); //add it to the result
- 	    		 System.out.println(result);
  	    	 }
  	    	 if(result.contains(test)){
 				 found = true;
 			 }
+ 	    	 count++;
  	    	 temp = false;
  	     }
+	 	 if(!found){
+	 	     System.out.println("no line");
+	 	     try {
+	 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
+	 		} catch (InterruptedException e) {
+	 		}
+	 	     while ((scanner.hasNextLine())&&(found == false)&&(count < 50)) { //whilst there is a next line to output
+	 	    	 if(!(temp)){ //ignore output of program name
+	 	    		 String tmp = scanner.nextLine(); // get that line
+	 	    		 System.out.println(tmp);
+	 	    		 System.out.println("000000");
+	 	    		 result = String.join("", result, tmp); //add it to the result
+	 	    	 }
+	 	    	 if(result.contains(test)){
+					 found = true;
+				 }
+	 	    	 count++;
+	 	    	 temp = false;
+	 	     }
 
- 	     this.destroy(); //kill process
- 	     if (found == false){
-			 throw new Exception("string not found", null); 
-		 }
+	 	     if (found == false){
+ 	    	 	throw new Exception("string not found", null); 
+ 	     	}
+	 	 }
          return result; 
       }
       
-      
+      public void scanner(){
+    	  if((isAlive())&&(!init)){
+    		  stdout = process.getInputStream(); //make pipe for output stream
+    		  reader = new BufferedReader(new InputStreamReader(stdout)); // like pipe to buffered reader
+    		  scanner = new Scanner(reader); //make scanner
+    		  init = true;
+    	  }else if((isAlive())&&(init)){
+    		  
+    	  }else if((!isAlive())){
+    		  spawn();
+    		  scanner();
+    	  }
+      }
+    	
       public Boolean isAlive(){ //returns if the process is alive
-		return(process.isAlive());
+		try{
+    	  return(process.isAlive());
+		}catch(java.lang.NullPointerException e){
+			System.out.println("process not up");
+			return(false);
+		}
     	  
       }
 }
