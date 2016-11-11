@@ -20,7 +20,6 @@ public class ProcessManagerTests {
     @Test
     public void templateTest(){
 
-        //  FIXME
         //  program to spawn and arguments
         String prog = "ps";
         String[] args = { "aux" };

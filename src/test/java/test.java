@@ -14,31 +14,42 @@ public class test {
 		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255 assignment1/src/test/java/test.bat", null);
 		String tmp;
 		main.spawn();
-//		try {
-//			tmp = main.expect(Pattern.compile("hel"), 1);
-//			System.out.println(tmp);
-//		} catch (Exception e) {
-//		}
+		try {
+			tmp = main.expect(Pattern.compile("hel"), 1);
+			System.out.println(tmp);
+		} catch (Exception e) {
+		}
 		System.out.println("test");
 		main.send("12345678");
-//		try {
-//			tmp = main.expect(Pattern.compile("hel"), 3000);
-//			System.out.println("test3");
-//			System.out.println(tmp);
-//		} catch (Exception e) {
-//			System.out.println(e.getMessage());
-//		}
+		try {
+			tmp = main.expect(Pattern.compile("hel"), 3000);
+			System.out.println("test3");
+			System.out.println(tmp);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 		main.send("12345678");
-//		try {
-//			System.out.println("test6");
-//			tmp = main.expect(Pattern.compile("1234"), 300);
-//			System.out.println("test3");
-//			System.out.println(tmp);
-//		} catch (Exception e) {
-//			System.out.println(e.getMessage());
-//		}
+		try {
+			System.out.println("test6");
+			tmp = main.expect(Pattern.compile("1234"), 300);
+			System.out.println("test3");
+			System.out.println(tmp);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
-	
+	@Test
+	public void sendTest(){
+		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255 assignment1/src/test/java/test.bat", null);
+		String tmp;
+		main.spawn();
+		main.send("12346678");
+		main.send("12345678");
+		main.send("15345578");
+		main.send("12346785");
+		main.send("123225678");
+		main.send("12345638");
+	}
 	@Test
 	public void tester2(){
 		String[] temp = new String[1];
