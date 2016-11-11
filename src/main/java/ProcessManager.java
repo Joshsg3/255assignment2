@@ -2,7 +2,6 @@ package main.java;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.PipedInputStream;
 import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -198,7 +197,6 @@ public class ProcessManager {
  	    	 if(!(temp)){ //ignore output of program name
  	    		 String tmp = scanner.nextLine(); // get that line
  	    		 System.out.println(tmp);
- 	    		 System.out.println("000000");
  	    		 result = String.join("", result, tmp); //add it to the result
  	    	 }
  	    	 if(result.contains(test)){
@@ -208,7 +206,6 @@ public class ProcessManager {
  	    	 temp = false;
  	     }
 	 	 if(!found){
-	 	     System.out.println("no line");
 	 	     try {
 	 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
 	 		} catch (InterruptedException e) {
@@ -217,7 +214,6 @@ public class ProcessManager {
 	 	    	 if(!(temp)){ //ignore output of program name
 	 	    		 String tmp = scanner.nextLine(); // get that line
 	 	    		 System.out.println(tmp);
-	 	    		 System.out.println("000000");
 	 	    		 result = String.join("", result, tmp); //add it to the result
 	 	    	 }
 	 	    	 if(result.contains(test)){
