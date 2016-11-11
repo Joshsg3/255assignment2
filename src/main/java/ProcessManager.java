@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.InputStreamReader;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 /**
@@ -167,15 +167,15 @@ public class ProcessManager {
       */
       public boolean send(String s) {
     	  writer();
+    	  System.out.println("start");
   		 try {
 			writer.write(s, 0, s.length());
 			writer.flush();
-			System.out.println("sent");
  		 } catch (IOException e) {
- 			 System.out.println(e.getMessage());
 			System.out.println("Process Error");
 			return false;
  		 }
+   	  System.out.println("end");
     	return true;
       }
       /**
@@ -192,38 +192,114 @@ public class ProcessManager {
  	     String result = new String();
  	     boolean temp = true;
  	     boolean found = false;
- 	     int count = 0;
- 	     while ((scanner.hasNextLine())&&(found == false)&&(count < 50)) { //whilst there is a next line to output
- 	    	 if(!(temp)){ //ignore output of program name
- 	    		 String tmp = scanner.nextLine(); // get that line
- 	    		 System.out.println(tmp);
- 	    		 result = String.join("", result, tmp); //add it to the result
- 	    	 }
- 	    	 if(result.contains(test)){
-				 found = true;
-			 }
- 	    	 count++;
- 	    	 temp = false;
- 	     }
-	 	 if(!found){
-	 	     try {
-	 			temp = process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
-	 		} catch (InterruptedException e) {
-	 		}
-	 	     while ((scanner.hasNextLine())&&(found == false)&&(count < 50)) { //whilst there is a next line to output
-	 	    	 if(!(temp)){ //ignore output of program name
-	 	    		 String tmp = scanner.nextLine(); // get that line
-	 	    		 System.out.println(tmp);
-	 	    		 result = String.join("", result, tmp); //add it to the result
-	 	    	 }
-	 	    	 if(result.contains(test)){
-					 found = true;
-				 }
-	 	    	 count++;
-	 	    	 temp = false;
-	 	     }
+ 	     int count = 1;
+ 	    Callable<String> run2 = new Callable<String>()
+ 	    {
+ 	        @Override
+ 	        public String call() throws Exception
+ 	        {
+ 	   	     int count = 1;
+ 	   	     boolean found = false;
+ 	 	     String result = new String();
+ 	        	while ((scanner.hasNextLine())&&(found == false)&&(count < 50)) { //whilst there is a next line to output
+ 	   	    	 System.out.println("trying");
+ 	   	    	 
+ 	   	        Callable<String> run = new Callable<String>()
+ 	   	       {
+ 	   	           @Override
+ 	   	           public String call() throws Exception
+ 	   	           {
+ 	  	    			 final String tmp2 = scanner.nextLine();
+ 	  	    			 return tmp2;
+ 	   	           }
+ 	   	       };
 
-	 	     if (found == false){
+ 	   	       RunnableFuture future = new FutureTask(run);
+ 	   	       ExecutorService service = Executors.newSingleThreadExecutor();
+ 	   	       service.execute(future);
+ 	  	    	 String tmp = "";
+ 	   	       try
+ 	   	       {
+ 	   	           tmp = (String) future.get(timeout+100, TimeUnit.MILLISECONDS);    // wait 1 second
+ 	   	       }
+ 	   	       catch (TimeoutException ex)
+ 	   	       {
+ 	   	           // timed out. Try to stop the code if possible.
+ 	   	           future.cancel(true);
+ 	   	       }
+ 	   	       service.shutdown();
+ 	   	    	if(tmp != ""){
+ 	   	    		 System.out.println("new test");
+ 	   	    		 System.out.println(result + ", " + tmp);
+ 	   	    		 result = String.join("", result, tmp); //add it to the result
+ 	   	    	}
+ 	   	    	 System.out.println("testing2");
+ 	   	    	 System.out.println(count);
+ 	   	    	 if(result.contains(test)){
+ 	  				 found = true;
+ 	  			 }
+ 	   	    	 System.out.println("tmp");
+ 	   	    	 count++;
+ 	   	     }
+ 	        	if (found){
+ 	        	return result;
+ 	        	}else{
+ 	        		return "";
+ 	        	}
+ 	        }
+ 	    };
+
+ 	    RunnableFuture future = new FutureTask(run2);
+ 	    ExecutorService service = Executors.newSingleThreadExecutor();
+ 	    service.execute(future);
+ 	    try
+ 	    {
+ 	        result = (String) future.get(1, TimeUnit.SECONDS);    // wait 1 second
+ 	    }
+ 	    catch (TimeoutException ex)
+ 	    {
+ 	        // timed out. Try to stop the code if possible.
+ 	        future.cancel(true);
+ 	    }
+ 	    service.shutdown();
+ 	    if(result != ""){
+ 	    	return result;
+ 	    }
+ 	     
+ 	    System.out.println("test12");
+	 	 if(!found){
+	 		 Thread t1 = new Thread(){
+	 			 public void run(){
+
+	 				 System.out.println("test11");
+	 				 try {
+	 				 	process.waitFor(timeout, TimeUnit.MILLISECONDS); // waitfor process to end or for timeout to happen
+	 			 	} catch (InterruptedException e) {}
+	 				 System.out.println("test10");
+	 			 }
+	 		 };
+	 		 t1.start();
+	 		 Thread.sleep(timeout + 100);
+	 		 if (t1.isAlive()){
+	 			 t1.interrupt();
+	 		 }
+	 		
+
+	 	    RunnableFuture future2 = new FutureTask(run2);
+	 	    ExecutorService service2 = Executors.newSingleThreadExecutor();
+	 	    service2.execute(future2);
+	 	    try
+	 	    {
+	 	        result = (String) future2.get(5000, TimeUnit.MILLISECONDS);    // wait 1 second
+	 	    }
+	 	    catch (TimeoutException ex)
+	 	    {
+	 	        // timed out. Try to stop the code if possible.
+	 	        future2.cancel(true);
+	 	    }
+	 	    service2.shutdown();
+
+	 	     if (result == ""){
  	    	 	throw new Exception("string not found", null); 
  	     	}
 	 	 }
