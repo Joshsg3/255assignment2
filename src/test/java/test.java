@@ -2,16 +2,41 @@
 package test.java;
 import static org.junit.Assert.*;
 
+import java.util.regex.Pattern;
+
 import org.junit.Test;
 import main.java.*;
 
 public class test {
 	
 	@Test
-	public void tester() {
-		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255_assignment1/src/test/java/test.bat", null);
-		String tmp = main.spawnAndCollect();
-		assertEquals("hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello", tmp);
+	public void main() {
+		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255 assignment1/src/test/java/test.bat", null);
+		String tmp;
+		main.spawn();
+		try {
+			tmp = main.expect(Pattern.compile("hel"), 1);
+			System.out.println(tmp);
+		} catch (Exception e) {
+		}
+		System.out.println("test");
+		main.send("12345678");
+		System.out.println("test2");
+		try {
+			tmp = main.expect(Pattern.compile("hel"), 3000);
+			System.out.println("test3");
+			System.out.println(tmp);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		main.send("12345678");
+		try {
+			tmp = main.expect(Pattern.compile("1234"), 3000);
+			System.out.println("test3");
+			System.out.println(tmp);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	@Test

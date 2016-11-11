@@ -1,7 +1,11 @@
 @echo OFF
 echo hello
-echo oop
+echo hello
+echo hello
 SET /P name = testing one 2 three
-echo %name%
+(echo %name%
+echo 1234
+SET /P name = testing one 2 three
+(echo %name%
 echo 1234
 echo :
