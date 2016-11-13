@@ -14,6 +14,7 @@ public class test {
 		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255 assignment1/src/test/java/test.bat", null);
 		String tmp;
 		main.spawn();
+		//Runs multiple expect functions to test whether a program can be asked prompts multiple times
 		try {
 			tmp = main.expect(Pattern.compile("hel"), 1);
 			System.out.println(tmp);
@@ -42,6 +43,7 @@ public class test {
 	public void sendTest(){
 		ProcessManager main = new ProcessManager("C:/Users/Joshua/workspace/comp255 assignment1/src/test/java/test.bat", null);
 		String tmp;
+		//Tests that the program reaches the end of the send function before starting a new send()
 		main.spawn();
 		main.send("12346678");
 		main.send("12345678");
