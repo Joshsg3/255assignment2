@@ -1,4 +1,4 @@
-
+Joshua Galea 44622341, Conor Mcintosh v44647387
 This file should provide set up, requirements, and uage examples.
 
 Set up
